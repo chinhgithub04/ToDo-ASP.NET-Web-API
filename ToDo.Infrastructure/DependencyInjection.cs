@@ -2,8 +2,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using ToDo.Application.Interfaces;
+using ToDo.Application.Interfaces.Repositories;
 using ToDo.Domain.Entities;
 using ToDo.Infrastructure.Persistence;
+using ToDo.Infrastructure.Persistence.Repositories;
 
 namespace ToDo.Infrastructure
 {
@@ -25,6 +28,10 @@ namespace ToDo.Infrastructure
 
                 options.User.RequireUniqueEmail = true;
             });
+
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<ITodoItemRepository, TodoItemRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             return services;
         }

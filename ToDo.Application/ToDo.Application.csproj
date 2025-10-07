@@ -12,7 +12,6 @@
 
   <ItemGroup>
     <Folder Include="Interfaces\Services\" />
-    <Folder Include="Interfaces\Repositories\" />
     <Folder Include="Services\" />
     <Folder Include="DTOs\" />
   </ItemGroup>
