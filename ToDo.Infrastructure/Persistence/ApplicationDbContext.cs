@@ -61,6 +61,7 @@ namespace ToDo.Infrastructure.Persistence
                 {
                     if (entry.State == EntityState.Added)
                     {
+                        todo.IsCompleted = false;
                         todo.CreatedAt = DateTimeOffset.UtcNow;
                     }
                     else if (entry.State == EntityState.Modified)

@@ -276,7 +276,7 @@ namespace ToDo.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("ToDo.Domain.Entities.TodoItem", b =>
@@ -315,7 +315,7 @@ namespace ToDo.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TodoItems");
+                    b.ToTable("TodoItems", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
