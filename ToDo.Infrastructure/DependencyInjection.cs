@@ -4,9 +4,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ToDo.Application.Interfaces;
 using ToDo.Application.Interfaces.Repositories;
+using ToDo.Application.Interfaces.Services;
 using ToDo.Domain.Entities;
 using ToDo.Infrastructure.Persistence;
 using ToDo.Infrastructure.Persistence.Repositories;
+using ToDo.Infrastructure.Services;
 
 namespace ToDo.Infrastructure
 {
@@ -32,6 +34,8 @@ namespace ToDo.Infrastructure
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<ITodoItemRepository, TodoItemRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ICategoryService, CategoryService>();
 
             return services;
         }
