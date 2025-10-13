@@ -59,7 +59,7 @@ namespace ToDo.Infrastructure.Services
             var result = await _userManager.CreateAsync(user, registerDto.Password);
             if (!result.Succeeded)
             {
-                var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                var errors = string.Join(" ", result.Errors.Select(e => e.Description));
                 throw new InvalidOperationException($"Failed to register user: {errors}");
             }
 

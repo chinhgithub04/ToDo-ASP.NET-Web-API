@@ -15,12 +15,12 @@ namespace ToDo.Application.Validators.Auth
             RuleFor(x => x.FirstName)
                 .NotEmpty().WithMessage("First name cannot be empty.")
                 .MaximumLength(50).WithMessage("First name cannot exceed 50 characters.")
-                .Matches("^[a-zA-Z ]+([-'][a-zA-Z ]+)*$").WithMessage("First name should only contain letters, spaces, hyphens and apostrophes.");
+                .Matches(@"^[\p{L} ]+([-'][\p{L} ]+)*$").WithMessage("First name should only contain letters, spaces, hyphens and apostrophes.");
 
             RuleFor(x => x.LastName)
                 .NotEmpty().WithMessage("Last name cannot be empty.")
                 .MaximumLength(50).WithMessage("Last name cannot exceed 50 characters.")
-                .Matches("^[a-zA-Z ]+([-'][a-zA-Z ]+)*$").WithMessage("First name should only contain letters, spaces, hyphens and apostrophes.");
+                .Matches(@"^[\p{L} ]+([-'][\p{L} ]+)*$").WithMessage("Last name should only contain letters, spaces, hyphens and apostrophes.");
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email cannot be empty.")
