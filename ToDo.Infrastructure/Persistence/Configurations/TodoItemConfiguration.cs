@@ -11,18 +11,20 @@ namespace ToDo.Infrastructure.Persistence.Configurations
             builder.Property(t => t.Title)
                 .IsRequired()
                 .HasMaxLength(500);
+            builder.Property(t => t.Description)
+                .HasMaxLength(2000);
             builder.Property(t => t.IsCompleted)
                 .IsRequired();
             builder.HasOne(t => t.Category)
                 .WithMany(c => c.TodoItems)
                 .HasForeignKey(t => t.CategoryId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
             builder.Property(t => t.CreatedAt)
                 .IsRequired();
             builder.HasOne(t => t.User)
                 .WithMany(u => u.TodoItems)
                 .HasForeignKey(t => t.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

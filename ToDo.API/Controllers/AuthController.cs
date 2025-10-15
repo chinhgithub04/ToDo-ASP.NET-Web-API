@@ -8,7 +8,7 @@ namespace ToDo.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController : BaseApiController
     {
         private readonly IAuthService _authService;
 
@@ -23,51 +23,20 @@ namespace ToDo.API.Controllers
             var validationResult = await validator.ValidateAsync(registerDto, cancellationToken);
             if (!validationResult.IsValid)
             {
-                return BadRequest(new ResponseDto<LoginResponseDto>
-                {
-                    Data = null,
-                    IsSuccess = false,
-                    Message = "Validation failed",
-                    StatusCode = 400,
-                    Errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList()
-                });
+                return BadRequestResponse<LoginResponseDto>("Validation failed", validationResult.Errors.Select(e => e.ErrorMessage).ToList());
             }
 
-            try
-            {
-                var result = await _authService.RegisterAsync(registerDto, cancellationToken);
+            var result = await _authService.RegisterAsync(registerDto, cancellationToken);
 
-                return StatusCode(201, new ResponseDto<LoginResponseDto>
-                {
-                    Data = result,
-                    IsSuccess = true,
-                    Message = "Registered successfully",
-                    StatusCode = 201,
-                    Errors = null
-                });
-            }
-            catch (InvalidOperationException ex)
+            return StatusCode(201, new ResponseDto<LoginResponseDto>
             {
-                return BadRequest(new ResponseDto<LoginResponseDto>
-                {
-                    Data = null,
-                    IsSuccess = false,
-                    Message = "Registration failed",
-                    StatusCode = 400,
-                    Errors = new List<string> { ex.Message }
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ResponseDto<LoginResponseDto>
-                {
-                    Data = null,
-                    IsSuccess = false,
-                    Message = "An unexpected error occurred",
-                    StatusCode = 500,
-                    Errors = new List<string> { "Internal server error" }
-                });
-            }
+                Data = result,
+                IsSuccess = true,
+                Message = "Registered successfully",
+                StatusCode = 201,
+                Errors = null
+            });
+
         }
 
         [HttpPost("login")]
@@ -76,51 +45,14 @@ namespace ToDo.API.Controllers
             var validationResult = await validator.ValidateAsync(loginDto, cancellationToken);
             if (!validationResult.IsValid)
             {
-                return BadRequest(new ResponseDto<LoginResponseDto>
-                {
-                    Data = null,
-                    IsSuccess = false,
-                    Message = "Validation failed",
-                    StatusCode = 400,
-                    Errors = validationResult.Errors.Select(e => e.ErrorMessage).ToList()
-                });
+                return BadRequestResponse<LoginResponseDto>("Validation failed", validationResult.Errors.Select(e => e.ErrorMessage).ToList());
             }
 
-            try
-            {
-                var result = await _authService.LoginAsync(loginDto, cancellationToken);
 
-                return Ok(new ResponseDto<LoginResponseDto>
-                {
-                    Data = result,
-                    IsSuccess = true,
-                    Message = "Login successful",
-                    StatusCode = 200,
-                    Errors = null
-                });
-            }
-            catch (UnauthorizedAccessException ex)
-            {
-                return Unauthorized(new ResponseDto<LoginResponseDto>
-                {
-                    Data = null,
-                    IsSuccess = false,
-                    Message = ex.Message,
-                    StatusCode = 401,
-                    Errors = null
-                });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new ResponseDto<LoginResponseDto>
-                {
-                    Data = null,
-                    IsSuccess = false,
-                    Message = "An unexpected error occurred",
-                    StatusCode = 500,
-                    Errors = new List<string> { "Internal server error" }
-                });
-            }
+            var result = await _authService.LoginAsync(loginDto, cancellationToken);
+
+            return OkResponse(result, "Login successfully");
+
         }
     }
 }

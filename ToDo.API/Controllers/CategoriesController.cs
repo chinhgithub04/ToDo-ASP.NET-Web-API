@@ -79,12 +79,12 @@ namespace ToDo.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<ResponseDto<CategoryDto>>> CreateCategory([FromBody] CreateCategoryDto createCategoryDto, [FromServices] IValidator<CreateCategoryDto> validator, CancellationToken cancellationToken)
+        public async Task<ActionResult<ResponseDto<DetailCategoryDto>>> CreateCategory([FromBody] CreateCategoryDto createCategoryDto, [FromServices] IValidator<CreateCategoryDto> validator, CancellationToken cancellationToken)
         {
             var validationResult = await validator.ValidateAsync(createCategoryDto, cancellationToken);
             if (!validationResult.IsValid)
             {
-                return BadRequestResponse<CategoryDto>("Validation failed", validationResult.Errors.Select(s => s.ErrorMessage).ToList());
+                return BadRequestResponse<DetailCategoryDto>("Validation failed", validationResult.Errors.Select(s => s.ErrorMessage).ToList());
             }
 
             var userId = GetUserIdFromClaims();
@@ -99,16 +99,19 @@ namespace ToDo.API.Controllers
             await _unitOfWork.Category.AddAsync(category, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var categoryDto = new CategoryDto
+            var detailCategoryDto = new DetailCategoryDto
             {
                 Id = category.Id,
                 Name = category.Name,
-                Color = category.Color
+                Color = category.Color,
+                CreatedAt = category.CreatedAt,
+                UpdatedAt = category.UpdatedAt,
+                TodoItems = new List<TodoItemDto>()
             };
 
-            var response = new ResponseDto<CategoryDto>
+            var response = new ResponseDto<DetailCategoryDto>
             {
-                Data = categoryDto,
+                Data = detailCategoryDto,
                 IsSuccess = true,
                 Message = "Category created successfully",
                 StatusCode = 201
@@ -121,26 +124,26 @@ namespace ToDo.API.Controllers
             );
         }
 
-        [HttpPut("{id}")]
-        public async Task<ActionResult<ResponseDto<CategoryDto>>> UpdateCategory(Guid id, [FromBody] UpdateCategoryDto updateCategoryDto, [FromServices] IValidator<UpdateCategoryDto> validator, CancellationToken cancellationToken)
+        [HttpPatch("{id}")]
+        public async Task<ActionResult<ResponseDto<DetailCategoryDto>>> UpdateCategory(Guid id, [FromBody] UpdateCategoryDto updateCategoryDto, [FromServices] IValidator<UpdateCategoryDto> validator, CancellationToken cancellationToken)
         {
             var validationResult = await validator.ValidateAsync(updateCategoryDto, cancellationToken);
             if (!validationResult.IsValid)
             {
-                return BadRequestResponse<CategoryDto>("Validation failed", validationResult.Errors.Select(s => s.ErrorMessage).ToList());
+                return BadRequestResponse<DetailCategoryDto>("Validation failed", validationResult.Errors.Select(s => s.ErrorMessage).ToList());
             }
 
             var userId = GetUserIdFromClaims();
-            var category = await _unitOfWork.Category.GetByIdAsync(id, cancellationToken);
+            var category = await _unitOfWork.Category.GetByIdAsync(id, cancellationToken, c => c.TodoItems);
 
             if (category == null)
             {
-                return NotFoundResponse<CategoryDto>("Category not found");
+                return NotFoundResponse<DetailCategoryDto>("Category not found");
             }
 
             if (!await IsCategoryOwnedByUserAsync(category.Id, userId, cancellationToken))
             {
-                return ForbiddenResponse<CategoryDto>("You don't have permission to update this category");
+                return ForbiddenResponse<DetailCategoryDto>("You don't have permission to update this category");
             }
 
             if (!string.IsNullOrWhiteSpace(updateCategoryDto.Name))
@@ -156,14 +159,22 @@ namespace ToDo.API.Controllers
             _unitOfWork.Category.Update(category);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var categoryDto = new CategoryDto
+            var detailCategoryDto = new DetailCategoryDto
             {
                 Id = category.Id,
                 Name = category.Name,
-                Color = category.Color
+                Color = category.Color,
+                CreatedAt = category.CreatedAt,
+                UpdatedAt = category.UpdatedAt,
+                TodoItems = category.TodoItems.Select(t => new TodoItemDto
+                {
+                    Id = t.Id,
+                    Title = t.Title,
+                    IsCompleted = t.IsCompleted,
+                }).ToList()
             };
 
-            return OkResponse(categoryDto, "Category updated successfully");
+            return OkResponse(detailCategoryDto, "Category updated successfully");
         }
 
         [HttpDelete("{id}")]
