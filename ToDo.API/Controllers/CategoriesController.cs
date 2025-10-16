@@ -1,9 +1,9 @@
-﻿using FluentValidation;
+﻿using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToDo.Application.DTOs.Category;
 using ToDo.Application.DTOs.Common;
-using ToDo.Application.DTOs.TodoItem;
 using ToDo.Application.Interfaces;
 using ToDo.Domain.Entities;
 
@@ -15,10 +15,12 @@ namespace ToDo.API.Controllers
     public class CategoriesController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public CategoriesController(IUnitOfWork unitOfWork)
+        public CategoriesController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -30,12 +32,7 @@ namespace ToDo.API.Controllers
                 cancellationToken
             );
 
-            var categoryDtos = categories.Select(c => new CategoryDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Color = c.Color
-            });
+            var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
 
             return OkResponse(categoryDtos, "Categories retrieved successfully");
         }
@@ -60,20 +57,7 @@ namespace ToDo.API.Controllers
                 return ForbiddenResponse<DetailCategoryDto>("You don't have permission to access this category");
             }
 
-            var detailDto = new DetailCategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Color = category.Color,
-                CreatedAt = category.CreatedAt,
-                UpdatedAt = category.UpdatedAt,
-                TodoItems = category.TodoItems.Select(t => new TodoItemDto
-                {
-                    Id = t.Id,
-                    Title = t.Title,
-                    IsCompleted = t.IsCompleted,
-                }).ToList()
-            };
+            var detailDto = _mapper.Map<DetailCategoryDto>(category);
 
             return OkResponse(detailDto, "Category retrieved successfully");
         }
@@ -89,25 +73,13 @@ namespace ToDo.API.Controllers
 
             var userId = GetUserIdFromClaims();
 
-            var category = new Category
-            {
-                Name = createCategoryDto.Name,
-                Color = createCategoryDto.Color,
-                UserId = userId
-            };
+            var category = _mapper.Map<Category>(createCategoryDto);
+            category.UserId = userId;
 
             await _unitOfWork.Category.AddAsync(category, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var detailCategoryDto = new DetailCategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Color = category.Color,
-                CreatedAt = category.CreatedAt,
-                UpdatedAt = category.UpdatedAt,
-                TodoItems = new List<TodoItemDto>()
-            };
+            var detailCategoryDto = _mapper.Map<DetailCategoryDto>(category);
 
             var response = new ResponseDto<DetailCategoryDto>
             {
@@ -146,33 +118,12 @@ namespace ToDo.API.Controllers
                 return ForbiddenResponse<DetailCategoryDto>("You don't have permission to update this category");
             }
 
-            if (!string.IsNullOrWhiteSpace(updateCategoryDto.Name))
-            {
-                category.Name = updateCategoryDto.Name;
-            }
-
-            if (!string.IsNullOrWhiteSpace(updateCategoryDto.Color))
-            {
-                category.Color = updateCategoryDto.Color;
-            }
+            _mapper.Map(updateCategoryDto, category);
 
             _unitOfWork.Category.Update(category);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-            var detailCategoryDto = new DetailCategoryDto
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Color = category.Color,
-                CreatedAt = category.CreatedAt,
-                UpdatedAt = category.UpdatedAt,
-                TodoItems = category.TodoItems.Select(t => new TodoItemDto
-                {
-                    Id = t.Id,
-                    Title = t.Title,
-                    IsCompleted = t.IsCompleted,
-                }).ToList()
-            };
+            var detailCategoryDto = _mapper.Map<DetailCategoryDto>(category);
 
             return OkResponse(detailCategoryDto, "Category updated successfully");
         }

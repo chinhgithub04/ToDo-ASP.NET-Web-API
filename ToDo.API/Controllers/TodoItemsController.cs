@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ToDo.Application.DTOs.Common;
@@ -14,10 +15,12 @@ namespace ToDo.API.Controllers
     public class TodoItemsController : BaseApiController
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public TodoItemsController(IUnitOfWork unitOfWork)
+        public TodoItemsController(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -26,12 +29,7 @@ namespace ToDo.API.Controllers
             var userId = GetUserIdFromClaims();
             var todoItems = await _unitOfWork.TodoItem.FindAsync(t => t.UserId == userId, cancellationToken);
 
-            var todoItemDtos = todoItems.Select(t => new TodoItemDto
-            {
-                Id = t.Id,
-                Title = t.Title,
-                IsCompleted = t.IsCompleted
-            });
+            var todoItemDtos = _mapper.Map<IEnumerable<TodoItemDto>>(todoItems);
 
             return OkResponse(todoItemDtos, "Todo items retrieved successfully");
         }
@@ -52,17 +50,7 @@ namespace ToDo.API.Controllers
                 return ForbiddenResponse<DetailTodoItemDto>("You don't have permission to access this todo item");
             }
 
-            var detailDto = new DetailTodoItemDto
-            {
-                Id = todoItem.Id,
-                Title = todoItem.Title,
-                Description = todoItem.Description,
-                IsCompleted = todoItem.IsCompleted,
-                CategoryId = todoItem.CategoryId,
-                CategoryName = todoItem.Category?.Name,
-                CreatedAt = todoItem.CreatedAt,
-                UpdatedAt = todoItem.UpdatedAt,
-            };
+            var detailDto = _mapper.Map<DetailTodoItemDto>(todoItem);
 
             return OkResponse(detailDto, "Todo item retrieved successfully");
         }
@@ -78,13 +66,8 @@ namespace ToDo.API.Controllers
 
             var userId = GetUserIdFromClaims();
 
-            var todoItem = new TodoItem
-            {
-                Title = createTodoItemDto.Title,
-                Description = createTodoItemDto.Description,
-                CategoryId = createTodoItemDto.CategoryId,
-                UserId = userId
-            };
+            var todoItem = _mapper.Map<TodoItem>(createTodoItemDto);
+            todoItem.UserId = userId;
 
             await _unitOfWork.TodoItem.AddAsync(todoItem, cancellationToken);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -94,17 +77,7 @@ namespace ToDo.API.Controllers
                 todoItem = await _unitOfWork.TodoItem.GetByIdAsync(todoItem.Id, cancellationToken, t => t.Category);
             }
 
-            var detailTodoItemDto = new DetailTodoItemDto
-            {
-                Id = todoItem.Id,
-                Title = todoItem.Title,
-                Description = todoItem.Description,
-                IsCompleted = todoItem.IsCompleted,
-                CategoryId = todoItem.CategoryId,
-                CategoryName = todoItem.Category?.Name,
-                CreatedAt = todoItem.CreatedAt,
-                UpdatedAt = todoItem.UpdatedAt
-            };
+            var detailTodoItemDto = _mapper.Map<DetailTodoItemDto>(todoItem);
 
             var response = new ResponseDto<DetailTodoItemDto>
             {
@@ -139,43 +112,15 @@ namespace ToDo.API.Controllers
                 return ForbiddenResponse<DetailTodoItemDto>("You don't have permission to update this todo item");
             }
 
-            if (!string.IsNullOrWhiteSpace(updateTodoItemDto.Title))
-            {
-                todoItem.Title = updateTodoItemDto.Title;
-            }
-
-            if (!string.IsNullOrWhiteSpace(updateTodoItemDto.Description))
-            {
-                todoItem.Description = updateTodoItemDto.Description;
-            }
-
-            if (updateTodoItemDto.IsCompleted.HasValue)
-            {
-                todoItem.IsCompleted = updateTodoItemDto.IsCompleted.Value;
-            }
-
-            if (updateTodoItemDto.CategoryId.HasValue)
-            {
-                todoItem.CategoryId = updateTodoItemDto.CategoryId.Value;
-            }
-
+            _mapper.Map(updateTodoItemDto, todoItem);
 
             _unitOfWork.TodoItem.Update(todoItem);
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var updatedTodoItem = await _unitOfWork.TodoItem.GetByIdAsync(todoItem.Id, cancellationToken, t => t.Category);
 
-            var detailTodoItemDto = new DetailTodoItemDto
-            {
-                Id = updatedTodoItem.Id,
-                Title = updatedTodoItem.Title,
-                Description = updatedTodoItem.Description,
-                IsCompleted = updatedTodoItem.IsCompleted,
-                CategoryId = updatedTodoItem.CategoryId,
-                CategoryName = updatedTodoItem.Category?.Name,
-                CreatedAt = updatedTodoItem.CreatedAt,
-                UpdatedAt = updatedTodoItem.UpdatedAt
-            };
+            var detailTodoItemDto = _mapper.Map<DetailTodoItemDto>(updatedTodoItem);
+
             return OkResponse(detailTodoItemDto, "Todo item updated successfully");
         }
 
