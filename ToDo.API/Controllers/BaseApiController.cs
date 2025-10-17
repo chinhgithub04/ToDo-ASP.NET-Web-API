@@ -67,5 +67,16 @@ namespace ToDo.API.Controllers
                 Errors = null
             });
         }
+
+        protected (int pageNumber, int pageSize, string? error) ValidatePagination(int pageNumber, int pageSize)
+        {
+            if (pageNumber < 1)
+                return (pageNumber, pageSize, "Page number must be at least 1");
+
+            if (pageSize < 1 || pageSize > 100)
+                return (pageNumber, pageSize, "Page size must be between 1 and 100");
+
+            return (pageNumber, pageSize, null);
+        }
     }
 }

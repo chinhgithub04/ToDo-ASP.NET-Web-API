@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ToDo.Application.DTOs.Category;
+using ToDo.Application.DTOs.Common;
 using ToDo.Application.DTOs.TodoItem;
 using ToDo.Domain.Entities;
 
@@ -42,6 +43,9 @@ namespace ToDo.Application.Mappings
 
             CreateMap<UpdateTodoItemDto, TodoItem>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            //PaginateResult
+            CreateMap(typeof(PaginatedResultDto<>), typeof(PaginatedResultDto<>));
         }
     }
 }

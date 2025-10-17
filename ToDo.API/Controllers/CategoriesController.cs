@@ -24,17 +24,26 @@ namespace ToDo.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<CategoryDto>>>> GetAllCategories(CancellationToken cancellationToken)
+        public async Task<ActionResult<ResponseDto<PaginatedResultDto<CategoryDto>>>> GetAllCategories([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
         {
+            var (validPageNumber, validPageSize, validationError) = ValidatePagination(pageNumber, pageSize);
+            if (validationError != null)
+            {
+                return BadRequestResponse<PaginatedResultDto<CategoryDto>>(validationError);
+            }
+
             var userId = GetUserIdFromClaims();
-            var categories = await _unitOfWork.Category.FindAsync(
+
+            var paginatedCategories = await _unitOfWork.Category.GetPagedAsync(
+                pageNumber,
+                pageSize,
                 c => c.UserId == userId,
                 cancellationToken
             );
 
-            var categoryDtos = _mapper.Map<IEnumerable<CategoryDto>>(categories);
+            var paginatedResult = _mapper.Map<PaginatedResultDto<CategoryDto>>(paginatedCategories);
 
-            return OkResponse(categoryDtos, "Categories retrieved successfully");
+            return OkResponse(paginatedResult, "Categories retrieved successfully");
         }
 
         [HttpGet("{id}")]

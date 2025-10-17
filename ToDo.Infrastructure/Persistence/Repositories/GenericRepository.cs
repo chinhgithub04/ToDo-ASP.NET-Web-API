@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using ToDo.Application.DTOs.Common;
 using ToDo.Application.Interfaces.Repositories;
 
 namespace ToDo.Infrastructure.Persistence.Repositories
@@ -93,6 +94,39 @@ namespace ToDo.Infrastructure.Persistence.Repositories
         {
             _dbSet.Attach(entity);
             _db.Entry(entity).State = EntityState.Modified;
+        }
+
+        public async Task<PaginatedResultDto<T>> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes)
+        {
+            IQueryable<T> query = _dbSet.AsNoTracking();
+
+            if (includes != null)
+            {
+                foreach (var include in includes)
+                {
+                    query = query.Include(include);
+                }
+            }
+
+            if (predicate != null)
+            {
+                query = query.Where(predicate);
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PaginatedResultDto<T>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageSize = pageSize,
+                PageNumber = pageNumber
+            };
         }
     }
 }

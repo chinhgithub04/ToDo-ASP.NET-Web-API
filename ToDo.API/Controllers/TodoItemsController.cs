@@ -2,6 +2,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ToDo.Application.DTOs.Category;
 using ToDo.Application.DTOs.Common;
 using ToDo.Application.DTOs.TodoItem;
 using ToDo.Application.Interfaces;
@@ -24,14 +25,25 @@ namespace ToDo.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<IEnumerable<TodoItemDto>>>> GetAllTodoItems(CancellationToken cancellationToken)
+        public async Task<ActionResult<ResponseDto<PaginatedResultDto<TodoItemDto>>>> GetAllTodoItems([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
         {
+            var (validPageNumber, validPageSize, validationError) = ValidatePagination(pageNumber, pageSize);
+            if (validationError != null)
+            {
+                return BadRequestResponse<PaginatedResultDto<TodoItemDto>>(validationError);
+            }
+
             var userId = GetUserIdFromClaims();
-            var todoItems = await _unitOfWork.TodoItem.FindAsync(t => t.UserId == userId, cancellationToken);
 
-            var todoItemDtos = _mapper.Map<IEnumerable<TodoItemDto>>(todoItems);
+            var paginatedTodoItems = await _unitOfWork.TodoItem.GetPagedAsync(
+                pageNumber,
+                pageSize,
+                t => t.UserId == userId,
+                cancellationToken);
 
-            return OkResponse(todoItemDtos, "Todo items retrieved successfully");
+            var paginatedResult = _mapper.Map<PaginatedResultDto<TodoItemDto>>(paginatedTodoItems);
+
+            return OkResponse(paginatedResult, "Todo items retrieved successfully");
         }
 
         [HttpGet("{id}")]
