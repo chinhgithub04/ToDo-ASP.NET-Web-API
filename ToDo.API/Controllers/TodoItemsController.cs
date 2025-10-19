@@ -25,22 +25,16 @@ namespace ToDo.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<PaginatedResultDto<TodoItemDto>>>> GetAllTodoItems([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ResponseDto<PaginatedResultDto<TodoItemDto>>>> GetAllTodoItems([FromQuery] TodoItemQueryParameters queryParameters, [FromServices] IValidator<TodoItemQueryParameters> validator, CancellationToken cancellationToken = default)
         {
-            var (validPageNumber, validPageSize, validationError) = ValidatePagination(pageNumber, pageSize);
-            if (validationError != null)
+            var validationResult = await validator.ValidateAsync(queryParameters, cancellationToken);
+            if (!validationResult.IsValid)
             {
-                return BadRequestResponse<PaginatedResultDto<TodoItemDto>>(validationError);
+                return BadRequestResponse<PaginatedResultDto<TodoItemDto>>("Validation failed", validationResult.Errors.Select(s => s.ErrorMessage).ToList());
             }
 
             var userId = GetUserIdFromClaims();
-
-            var paginatedTodoItems = await _unitOfWork.TodoItem.GetPagedAsync(
-                pageNumber,
-                pageSize,
-                t => t.UserId == userId,
-                cancellationToken);
-
+            var paginatedTodoItems = await _unitOfWork.TodoItem.GetTodoItemsAsync(userId, queryParameters, cancellationToken);
             var paginatedResult = _mapper.Map<PaginatedResultDto<TodoItemDto>>(paginatedTodoItems);
 
             return OkResponse(paginatedResult, "Todo items retrieved successfully");
