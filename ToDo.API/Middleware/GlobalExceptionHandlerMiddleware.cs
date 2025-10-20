@@ -21,10 +21,12 @@ namespace ToDo.API.Middleware
             }
             catch (UnauthorizedAccessException ex)
             {
+                _logger.LogWarning(ex, "Unauthorized access attempt: {Message}", ex.Message);
                 await HandleExceptionAsync(context, ex, StatusCodes.Status401Unauthorized, "Unauthorized");
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning(ex, "Invalid operation attempt: {Message}", ex.Message);
                 await HandleExceptionAsync(context, ex, StatusCodes.Status400BadRequest, ex.Message);
             }
             catch (Exception ex)
