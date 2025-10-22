@@ -1,4 +1,6 @@
-﻿using ToDo.Application.DTOs.Common;
+﻿using FluentValidation;
+using ToDo.Application.DTOs.Common;
+using ToDo.Domain.Exceptions;
 
 namespace ToDo.API.Middleware
 {
@@ -19,15 +21,30 @@ namespace ToDo.API.Middleware
             {
                 await _next(context);
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Invalid operation attempt: {Message}", ex.Message);
+                await HandleExceptionAsync(context, ex, StatusCodes.Status400BadRequest, ex.Message);
+            }
+            catch (ValidationException ex)
+            {
+                _logger.LogWarning(ex, "Validation failed: {Errors}", string.Join(", ", ex.Errors));
+                await HandleExceptionAsync(context, ex, StatusCodes.Status400BadRequest, "Validation failed", ex.Errors.Select(e => e.ErrorMessage).ToList());
+            }
             catch (UnauthorizedAccessException ex)
             {
                 _logger.LogWarning(ex, "Unauthorized access attempt: {Message}", ex.Message);
                 await HandleExceptionAsync(context, ex, StatusCodes.Status401Unauthorized, "Unauthorized");
             }
-            catch (InvalidOperationException ex)
+            catch (ForbiddenAccessException ex)
             {
-                _logger.LogWarning(ex, "Invalid operation attempt: {Message}", ex.Message);
-                await HandleExceptionAsync(context, ex, StatusCodes.Status400BadRequest, ex.Message);
+                _logger.LogWarning(ex, "Forbidden access attempt: {Message}", ex.Message);
+                await HandleExceptionAsync(context, ex, StatusCodes.Status403Forbidden, ex.Message);
+            }
+            catch (NotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Resource not found: {Message}", ex.Message);
+                await HandleExceptionAsync(context, ex, StatusCodes.Status404NotFound, ex.Message);
             }
             catch (Exception ex)
             {
@@ -36,7 +53,7 @@ namespace ToDo.API.Middleware
             }
         }
 
-        private static async Task HandleExceptionAsync(HttpContext context, Exception exception, int statusCode, string message)
+        private static async Task HandleExceptionAsync(HttpContext context, Exception exception, int statusCode, string message, List<string>? errors = null)
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = statusCode;
@@ -47,7 +64,7 @@ namespace ToDo.API.Middleware
                 IsSuccess = false,
                 Message = message,
                 StatusCode = statusCode,
-                Errors = statusCode == 500 ? new List<string> { "Internal server error" } : new List<string> { exception.Message }
+                Errors = errors ?? (statusCode == 500 ? new List<string> { "Internal server error" } : new List<string> { exception.Message })
             };
 
             await context.Response.WriteAsJsonAsync(response);

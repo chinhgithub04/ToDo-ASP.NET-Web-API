@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Linq.Expressions;
 using ToDo.Application.DTOs.Common;
 using ToDo.Application.DTOs.TodoItem;
 using ToDo.Application.Interfaces.Repositories;
@@ -14,7 +13,7 @@ namespace ToDo.Infrastructure.Persistence.Repositories
         {
         }
 
-        public async Task<PaginatedResultDto<TodoItem>> GetTodoItemsAsync(string userId, TodoItemQueryParameters queryParameters, CancellationToken cancellationToken)
+        public async Task<PaginatedResultDto<TodoItem>> GetTodoItemsWithQueryParametersAsync(string userId, TodoItemQueryParameters queryParameters, CancellationToken cancellationToken)
         {
             IQueryable<TodoItem> query = _dbSet.AsNoTracking().Where(t => t.UserId == userId).Include(t => t.Category);
 
@@ -24,7 +23,7 @@ namespace ToDo.Infrastructure.Persistence.Repositories
                 query = query.Where(t => t.IsCompleted == queryParameters.IsCompleted.Value);
             }
 
-            if (queryParameters.CategoryId.HasValue) 
+            if (queryParameters.CategoryId.HasValue)
             {
                 query = query.Where(t => t.CategoryId == queryParameters.CategoryId.Value);
             }
@@ -70,16 +69,6 @@ namespace ToDo.Infrastructure.Persistence.Repositories
                 PageSize = queryParameters.PageSize,
                 PageNumber = queryParameters.PageNumber
             };
-        }
-
-        public async Task<IReadOnlyList<TodoItem>> GetTodosByCategoryAsync(Guid categoryId, CancellationToken cancellationToken = default, params Expression<Func<TodoItem, object>>[] includes)
-        {
-            return await FindAsync(t => t.CategoryId == categoryId, cancellationToken, includes);
-        }
-
-        public async Task<IReadOnlyList<TodoItem>> GetTodosByUserAsync(string userId, CancellationToken cancellationToken = default, params Expression<Func<TodoItem, object>>[] includes)
-        {
-            return await FindAsync(t => t.UserId == userId, cancellationToken, includes);
         }
     }
 }

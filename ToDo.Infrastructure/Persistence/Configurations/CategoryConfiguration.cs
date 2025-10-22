@@ -11,6 +11,10 @@ namespace ToDo.Infrastructure.Persistence.Configurations
             builder.Property(c => c.Name)
                 .IsRequired()
                 .HasMaxLength(60);
+
+            builder.HasIndex(c => new { c.UserId, c.Name })
+                .IsUnique();
+
             builder.Property(c => c.Color)
                 .IsRequired()
                 .HasMaxLength(7);

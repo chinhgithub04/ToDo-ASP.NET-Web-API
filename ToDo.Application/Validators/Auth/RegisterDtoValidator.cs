@@ -1,17 +1,12 @@
 ﻿using FluentValidation;
 using ToDo.Application.DTOs.Auth;
-using ToDo.Application.Interfaces.Services;
 
 namespace ToDo.Application.Validators.Auth
 {
     public class RegisterDtoValidator : AbstractValidator<RegisterDto>
     {
-        private readonly IUserService _userService;
-
-        public RegisterDtoValidator(IUserService userService)
+        public RegisterDtoValidator()
         {
-            _userService = userService;
-
             RuleFor(x => x.FirstName)
                 .NotEmpty().WithMessage("First name cannot be empty.")
                 .MaximumLength(50).WithMessage("First name cannot exceed 50 characters.")
@@ -25,8 +20,7 @@ namespace ToDo.Application.Validators.Auth
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email cannot be empty.")
                 .EmailAddress().WithMessage("Invalid email format.")
-                .MaximumLength(100).WithMessage("Email cannot exceed 100 characters.")
-                .MustAsync(BeUniqueEmail).WithMessage("Email is already in use.");
+                .MaximumLength(100).WithMessage("Email cannot exceed 100 characters.");
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password cannot be empty.")
@@ -39,11 +33,6 @@ namespace ToDo.Application.Validators.Auth
 
             RuleFor(x => x.ConfirmPassword)
                 .Equal(x => x.Password).WithMessage("Passwords do not match.");
-        }
-
-        private async Task<bool> BeUniqueEmail(string email, CancellationToken cancellationToken)
-        {
-            return !await _userService.EmailExistsAsync(email, cancellationToken);
         }
     }
 }

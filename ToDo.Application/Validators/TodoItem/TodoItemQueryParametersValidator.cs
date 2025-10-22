@@ -1,28 +1,14 @@
 ﻿using FluentValidation;
 using ToDo.Application.DTOs.TodoItem;
-using ToDo.Application.Interfaces.Services;
+using ToDo.Application.Validators.Common;
 
 namespace ToDo.Application.Validators.TodoItem
 {
     public class TodoItemQueryParametersValidator : AbstractValidator<TodoItemQueryParameters>
     {
-        private readonly ICategoryService _categoryService;
-
-        public TodoItemQueryParametersValidator(ICategoryService categoryService)
+        public TodoItemQueryParametersValidator()
         {
-            _categoryService = categoryService;
-
-            RuleFor(x => x.PageNumber)
-                .GreaterThanOrEqualTo(1)
-                .WithMessage("Page number must be at least 1.");
-
-            RuleFor(x => x.PageSize)
-                .InclusiveBetween(1, 100)
-                .WithMessage("Page size must be between 1 and 100.");
-
-            RuleFor(x => x.CategoryId)
-                .MustAsync(CategoryExists).WithMessage("Selected category does not exist.")
-                .When(x => x.CategoryId.HasValue);
+            Include(new PaginationQueryValidator());
 
             RuleFor(x => x.SearchTerm)
                 .MaximumLength(500)
@@ -38,14 +24,6 @@ namespace ToDo.Application.Validators.TodoItem
                 .IsInEnum()
                 .WithMessage("Invalid value for SortOrder.")
                 .When(x => x.SortOrder.HasValue);
-        }
-
-        private async Task<bool> CategoryExists(Guid? categoryId, CancellationToken cancellationToken)
-        {
-            if (!categoryId.HasValue)
-                return true;
-
-            return await _categoryService.CategoryExistsAsync(categoryId.Value, cancellationToken);
         }
     }
 }
