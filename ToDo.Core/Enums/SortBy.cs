@@ -5,6 +5,8 @@
         CreatedAt,
         UpdatedAt,
         Title,
-        IsCompleted
+        IsCompleted,
+        DueDate,
+        Priority
     }
 }

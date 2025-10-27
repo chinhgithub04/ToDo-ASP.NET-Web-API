@@ -1,4 +1,6 @@
-﻿namespace ToDo.Application.DTOs.TodoItem
+﻿using ToDo.Domain.Enums;
+
+namespace ToDo.Application.DTOs.TodoItem
 {
     public record DetailTodoItemDto
     {
@@ -8,6 +10,8 @@
         public bool IsCompleted { get; init; }
         public Guid? CategoryId { get; init; }
         public string? CategoryName { get; init; }
+        public DateTimeOffset? DueDate { get; init; }
+        public Priority Priority { get; init; }
         public DateTimeOffset CreatedAt { get; init; }
         public DateTimeOffset? UpdatedAt { get; init; }
     }

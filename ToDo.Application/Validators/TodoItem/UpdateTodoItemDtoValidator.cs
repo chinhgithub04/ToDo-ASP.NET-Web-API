@@ -15,6 +15,10 @@ namespace ToDo.Application.Validators.TodoItem
             RuleFor(x => x.Description)
                 .MaximumLength(2000).WithMessage("Description cannot exceed 2000 characters.")
                 .When(x => x.Description != null);
+
+            RuleFor(x => x.Priority)
+                .IsInEnum().WithMessage("Invalid value for Priority.")
+                .When(x => x.Priority.HasValue);
         }
     }
 }

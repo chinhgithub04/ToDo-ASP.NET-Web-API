@@ -1,4 +1,6 @@
-﻿namespace ToDo.Domain.Entities
+﻿using ToDo.Domain.Enums;
+
+namespace ToDo.Domain.Entities
 {
     public class TodoItem
     {
@@ -9,10 +11,12 @@
 
         public Guid? CategoryId { get; set; }
         public Category Category { get; set; }
+        public DateTimeOffset? DueDate { get; set; }
+        public Priority Priority { get; set; }
 
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? UpdatedAt { get; set; }
-
+        
         public string UserId { get; set; }
         public ApplicationUser User { get; set; }
     }

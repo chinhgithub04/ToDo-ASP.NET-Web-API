@@ -24,6 +24,10 @@ namespace ToDo.Application.Validators.TodoItem
                 .IsInEnum()
                 .WithMessage("Invalid value for SortOrder.")
                 .When(x => x.SortOrder.HasValue);
+
+            RuleFor(x => x.Priority)
+                .IsInEnum().WithMessage("Invalid value for Priority.")
+                .When(x => x.Priority.HasValue);
         }
     }
 }

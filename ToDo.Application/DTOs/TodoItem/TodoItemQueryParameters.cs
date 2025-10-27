@@ -9,6 +9,8 @@ namespace ToDo.Application.DTOs.TodoItem
         public bool? IsCompleted { get; init; }
         public Guid? CategoryId { get; init; }
         public string? SearchTerm { get; init; }
+        public Priority? Priority { get; init; }
+        public bool? IsOverDue { get; init; }
 
         // Sorting
         public SortBy? SortBy { get; init; }

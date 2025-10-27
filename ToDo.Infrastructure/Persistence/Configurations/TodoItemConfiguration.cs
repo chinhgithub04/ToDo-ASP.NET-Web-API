@@ -19,6 +19,8 @@ namespace ToDo.Infrastructure.Persistence.Configurations
                 .WithMany(c => c.TodoItems)
                 .HasForeignKey(t => t.CategoryId)
                 .OnDelete(DeleteBehavior.SetNull);
+            builder.Property(t => t.Priority)
+                .IsRequired();
             builder.Property(t => t.CreatedAt)
                 .IsRequired();
             builder.HasOne(t => t.User)
