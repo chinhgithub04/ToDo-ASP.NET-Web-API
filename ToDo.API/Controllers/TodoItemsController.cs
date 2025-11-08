@@ -62,7 +62,7 @@ namespace ToDo.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<ActionResult<ResponseDto<object>>> DeleteTodoItem(Guid id, CancellationToken cancellationToken)
+        public async Task<ActionResult> DeleteTodoItem(Guid id, CancellationToken cancellationToken)
         {
             var userId = GetUserIdFromClaims();
             await _todoItemService.DeleteTodoItemAsync(id, userId, cancellationToken);
