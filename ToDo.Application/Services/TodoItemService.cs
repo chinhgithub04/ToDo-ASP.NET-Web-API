@@ -22,13 +22,13 @@ namespace ToDo.Application.Services
             _logger = logger;
         }
 
-        public async Task<PaginatedResultDto<TodoItemDto>> GetAllTodoItemsAsync(TodoItemQueryParameters queryParameters, string userId, CancellationToken cancellationToken)
+        public async Task<PaginatedResultDto<TodoItemListDto>> GetAllTodoItemsAsync(TodoItemQueryParameters queryParameters, string userId, CancellationToken cancellationToken)
         {
             _logger.LogInformation("Retrieving TodoItems for User {UserId} - PageNumber: {PageNumber}, PageSize: {PageSize}", userId, queryParameters.PageNumber, queryParameters.PageSize);
 
             var paginatedTodoItems = await _unitOfWork.TodoItem.GetTodoItemsWithQueryParametersAsync(userId, queryParameters, cancellationToken);
 
-            var paginatedResult = _mapper.Map<PaginatedResultDto<TodoItemDto>>(paginatedTodoItems);
+            var paginatedResult = _mapper.Map<PaginatedResultDto<TodoItemListDto>>(paginatedTodoItems);
             _logger.LogInformation("Successfully retrieved {ItemCount} TodoItems for User {UserId}", paginatedResult.Items.Count, userId);
 
             return paginatedResult;
@@ -90,7 +90,7 @@ namespace ToDo.Application.Services
         {
             _logger.LogInformation("Attempting to update TodoItem {Title} for User {UserId}", updateTodoItemDto.Title, userId);
 
-            var todoItem = await _unitOfWork.TodoItem.GetByIdAsync(id, cancellationToken, t => t.Category);
+            var todoItem = await _unitOfWork.TodoItem.GetByIdAsync(id, cancellationToken);
 
             if (todoItem == null)
             {

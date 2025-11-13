@@ -18,7 +18,7 @@ namespace ToDo.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<ResponseDto<PaginatedResultDto<TodoItemDto>>>> GetAllTodoItems([FromQuery] TodoItemQueryParameters queryParameters, CancellationToken cancellationToken = default)
+        public async Task<ActionResult<ResponseDto<PaginatedResultDto<TodoItemListDto>>>> GetAllTodoItems([FromQuery] TodoItemQueryParameters queryParameters, CancellationToken cancellationToken = default)
         {
             var userId = GetUserIdFromClaims();
             var paginatedTodoItem = await _todoItemService.GetAllTodoItemsAsync(queryParameters, userId, cancellationToken);

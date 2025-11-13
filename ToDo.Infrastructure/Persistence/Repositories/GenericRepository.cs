@@ -92,8 +92,7 @@ namespace ToDo.Infrastructure.Persistence.Repositories
 
         public void Update(T entity)
         {
-            _dbSet.Attach(entity);
-            _db.Entry(entity).State = EntityState.Modified;
+            _dbSet.Update(entity);
         }
 
         public async Task<PaginatedResultDto<T>> GetPagedAsync(int pageNumber, int pageSize, Expression<Func<T, bool>>? predicate = null, CancellationToken cancellationToken = default, params Expression<Func<T, object>>[] includes)
